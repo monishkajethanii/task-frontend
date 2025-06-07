@@ -16,21 +16,21 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/tasks", {
-          headers: {
-            auth: "c3RvcmVhbmRjb25uZWN0IGlzIGJlc3Q=",
-          },
-        });
-        console.log("API Response:", response.data);
-        setTasks(response.data.data || []);
-      } catch (error) {
-        console.log("API not available, using mock data:", error.message);
-      }
-    };
+ const fetchTasks = async () => {
+    try {
+      const response = await axios.get("https://task-backend-one-brown.vercel.app/api/tasks", {
+        headers: {
+          auth: process.env.auth,
+        },
+      });
+      console.log("API Response:", response.data);
+      setTasks(response.data.data || []);
+    } catch (error) {
+      console.log("API not available, using mock data:", error.message);
+    }
+  };
 
+  useEffect(() => {
     fetchTasks();
   }, []);
 
@@ -87,11 +87,11 @@ export default function Page() {
       if (editingTask) {
         // Update existing task
         const response = await axios.put(
-          `http://localhost:5000/api/edittask/${editingTask.id}`,
+          `https://task-backend-one-brown.vercel.app/api/edittask/${editingTask.id}`,
           form,
           {
             headers: {
-              auth: "c3RvcmVhbmRjb25uZWN0IGlzIGJlc3Q=",
+              auth: process.env.auth,
               "Content-Type": "application/json",
             },
           }
@@ -110,11 +110,11 @@ export default function Page() {
       } else {
         // Create new task
         const response = await axios.post(
-          "http://localhost:5000/api/addtask",
+          "https://task-backend-one-brown.vercel.app/api/addtask",
           form,
           {
             headers: {
-              auth: "c3RvcmVhbmRjb25uZWN0IGlzIGJlc3Q=",
+              auth: process.env.auth,
               "Content-Type": "application/json",
             },
           }
@@ -125,7 +125,10 @@ export default function Page() {
         setTasks((prev) => [...prev, response.data.data]);
       }
 
-      // Reset form and close modal
+      // update 
+      await fetchTasks();
+
+      // reset
       setForm({
         title: "",
         desc: "",
@@ -149,13 +152,13 @@ export default function Page() {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/delete/${taskId}`, {
+      await axios.delete(`https://task-backend-one-brown.vercel.app/api/delete/${taskId}`, {
         headers: {
-          auth: "c3RvcmVhbmRjb25uZWN0IGlzIGJlc3Q=",
+          auth: process.env.auth,
         },
       });
 
-      // Remove task from list
+      // remove task from list
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
       console.log("Task deleted successfully");
     } catch (error) {
@@ -173,18 +176,6 @@ export default function Page() {
       status: task.status !== undefined ? task.status : true,
     });
     setShowModal(true);
-  };
-
-  const resetModal = () => {
-    setShowModal(false);
-    setError("");
-    setEditingTask(null);
-    setForm({
-      title: "",
-      desc: "",
-      due_date: "",
-      status: true,
-    });
   };
 
   return (
@@ -205,7 +196,7 @@ export default function Page() {
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all ${
                   filter === "all"
                     ? "bg-white text-blue-600 shadow-sm"
                     : "text-gray-600 hover:text-gray-800"
@@ -215,7 +206,7 @@ export default function Page() {
               </button>
               <button
                 onClick={() => setFilter("active")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition-all ${
                   filter === "active"
                     ? "bg-white text-green-600 shadow-sm"
                     : "text-gray-600 hover:text-gray-800"
@@ -225,7 +216,7 @@ export default function Page() {
               </button>
               <button
                 onClick={() => setFilter("inactive")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-md cursor-pointer text-sm font-medium transition-all ${
                   filter === "inactive"
                     ? "bg-white text-gray-600 shadow-sm"
                     : "text-gray-600 hover:text-gray-800"
@@ -237,7 +228,7 @@ export default function Page() {
 
             <button
               onClick={() => setShowModal(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+              className="bg-gradient-to-r cursor-pointer from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
             >
               <svg
                 className="w-5 h-5"
@@ -288,7 +279,7 @@ export default function Page() {
                       <div className="flex gap-2">
                         <button 
                           onClick={() => handleEditTask(task)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 cursor-pointer text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit task"
                         >
                           <svg
@@ -307,7 +298,7 @@ export default function Page() {
                         </button>
                         <button
                           onClick={() => handleDeleteTask(task.id, index)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-red-600 cursor-pointer hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete task"
                         >
                           <svg
@@ -396,7 +387,7 @@ export default function Page() {
             </p>
             <button
               onClick={() => setShowModal(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
+              className="bg-gradient-to-r cursor-pointer from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
             >
               <svg
                 className="w-5 h-5"
@@ -475,7 +466,7 @@ export default function Page() {
                   value={form.title}
                   onChange={handleInputChange}
                   placeholder="Enter task title..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -490,7 +481,7 @@ export default function Page() {
                   onChange={handleInputChange}
                   rows={4}
                   placeholder="Add task description..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 />
               </div>
 
@@ -504,7 +495,7 @@ export default function Page() {
                   name="due_date"
                   value={form.due_date}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -519,7 +510,7 @@ export default function Page() {
                     name="status"
                     checked={form.status}
                     onChange={handleInputChange}
-                    className="sr-only peer"
+                    className="sr-only peer text-black"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   <span className="ml-3 text-sm text-gray-600">
@@ -542,14 +533,14 @@ export default function Page() {
                     status: true,
                   });
                 }}
-                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="flex-1 px-4 py-3 cursor-pointer border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleNewTask}
                 disabled={loading}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Creating..." : "Create Task"}
               </button>
